@@ -21,6 +21,12 @@
           <button class="law" id="crumbLaw" aria-label="Escolher outra lei">Carregando…</button
           ><span class="where" id="crumbWhere">&nbsp;</span>
         </div>
+        <button class="tool" id="btnStudy" aria-label="Estudos: revisão e cronograma">
+          <svg class="i" viewBox="0 0 24 24">
+            <path d="m2 9 10-5 10 5-10 5z" />
+            <path d="M6 11v5c2 2 10 2 12 0v-5M22 9v6" /></svg
+          ><span class="lbl">Estudar</span><span class="badge" id="studyBadge" hidden>0</span>
+        </button>
         <button class="tool" id="btnSearch" aria-label="Buscar no texto">
           <svg class="i" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="6.5" />
@@ -171,6 +177,15 @@
         <div class="picker-list" id="pickerList"></div>
       </div>
     </div>
+    <section class="study" id="study" hidden aria-label="Estudos">
+      <div class="study-top">
+        <button id="studyClose" aria-label="Voltar">
+          <svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" /></svg>
+        </button>
+        <h1>Estudos</h1>
+      </div>
+      <div class="study-body" id="studyBody"></div>
+    </section>
     <div class="toast" id="toast" hidden></div>
     <script type="module" src="./src/main.ts"></script>
   </body>

@@ -3,11 +3,13 @@ import "@fontsource-variable/literata/opsz-italic.css";
 import "@fontsource-variable/schibsted-grotesk/wght.css";
 import "./styles.css";
 import "./picker.css";
+import "./study.css";
 
 import { isHeading, LAWS, lawMeta, lawsInTab, TABS, type Article, type Heading, type LawData } from "./laws";
 import { applyRange, COLORS, decodeMarks, encodeMarks, snapEnd, snapStart, type Color, type Range } from "./marks";
 import { artLabel, articleKeyFromInput, esc, fold, kindOf, LABEL_RE, nice, type ParaKind } from "./text";
 import { createStore, parseBackup, type Backup } from "./storage";
+import { initStudy } from "./study";
 import { appVersion, onAppPause, onBackButton, preferencesKV, setSystemBars, shareBackup } from "./platform";
 
 /* ================= small helpers ================= */
@@ -1054,7 +1056,22 @@ wide.addEventListener("change", () => {
 });
 
 /* ================= Android back button ================= */
+const study = initStudy({
+  kv: preferencesKV,
+  fetchLaw,
+  allMarks: async () => {
+    flushSave();
+    return (await store.exportAll()).laws;
+  },
+  openArticle: (lawId, key) => {
+    if (lawId === S.lawId && S.law) jumpTo(key);
+    else void openLaw(lawId, key);
+  },
+  toast,
+});
+
 onBackButton(() => {
+  if (study.back()) return true;
   if (closePicker()) return true;
   if (closeConfirm()) return true;
   if (closeSettings()) return true;
