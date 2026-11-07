@@ -126,3 +126,80 @@ test("takes 'Disposições Gerais' as a section name, not a rubric", () => {
 test("removes zero-width spaces", () => {
   assert.equal(normalize("Art. 1º" + String.fromCharCode(0x200b) + " Texto"), "Art. 1º Texto");
 });
+
+test("reads glued letter suffixes and planalto typos in article labels", () => {
+  assert.equal(articleKey("Art. 10A. O Banco Central"), "art-10-A");
+  assert.equal(articleKey("Art. 1º A República Federativa"), "art-1");
+  assert.equal(normalize("Art. . 154 - A observância"), "Art. 154 - A observância");
+  assert.equal(normalize("Art. 5 7. (VETADO)."), "Art. 57. (VETADO).");
+});
+
+test("keeps quoted amendments to other laws inside the amending article", () => {
+  const items = buildLaw([
+    "Art. 2º O Código Penal passa a vigorar com as seguintes alterações:",
+    "“Art. 337-E. Admitir, possibilitar ou dar causa à contratação direta:",
+    "Pena - reclusão, de 4 (quatro) a 8 (oito) anos, e multa.",
+    "Art. 337-F. Frustrar o caráter competitivo:",
+    "........................................................”(NR)",
+    "Art. 3º Esta Lei entra em vigor na data de sua publicação.",
+  ]);
+  assert.deepEqual(
+    items.map((i) => i.k),
+    ["art-2", "art-3"],
+  );
+  assert.equal(items[0].p.length, 4);
+});
+
+test("skips approving decree for annexed codes and stops at signatures with odd spacing", () => {
+  const items = buildLaw(
+    [
+      "Art. 1º Fica aprovada a Consolidação.",
+      "Rio de Janeiro, 1 de maio de 1943.",
+      "TÍTULO I",
+      "INTRODUÇÃO",
+      "Art. 1º - Esta Consolidação estatui as normas.",
+      "Brasília , 14 de agosto de 2018.",
+      "FULANO",
+    ],
+    { annex: true },
+  );
+  assert.deepEqual(
+    items.map((i) => i.k ?? i.l),
+    ["TÍTULO I", "art-1"],
+  );
+  assert.match(items[1].p[0].t, /Esta Consolidação/);
+});
+
+test("drops 'Vigência encerrada' markers and label-only leftovers", () => {
+  const items = buildLaw([
+    "Art. 30. Texto:",
+    "Vigência encerrada",
+    "(Vigência encerrada)",
+    "Art. 31.",
+    "Art. 31. A estruturação dos sistemas.",
+  ]);
+  assert.deepEqual(
+    items.map((i) => i.k),
+    ["art-30", "art-31"],
+  );
+  assert.equal(items[1].p[0].t, "Art. 31. A estruturação dos sistemas.");
+  assert.equal(items[0].p.length, 1);
+});
+
+test("reads a section name that follows a note line, and stops at annexes and Congress sign-offs", () => {
+  const items = buildLaw([
+    "Art. 5º Texto.",
+    "Seção I",
+    "(Incluído pela Lei nº 13.840, de 2019)",
+    "Da Composição do Sistema",
+    "Art. 6º (VETADO)",
+    "Congresso Nacional, em 23 de novembro de 1999; 178º da Independência.",
+    "Presidente",
+  ]);
+  const sec = items.find((i) => i.l === "Seção I");
+  assert.equal(sec.n, "Da Composição do Sistema");
+  assert.equal(items.find((i) => i.k === "art-6").rb, undefined);
+  assert.ok(!JSON.stringify(items).includes("Presidente"));
+  const withAnnex = buildLaw(["Art. 1º Texto.", "ANEXO", "1º GRUPO - Indústria"]);
+  assert.ok(!JSON.stringify(withAnnex).includes("GRUPO"));
+});

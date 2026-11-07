@@ -90,7 +90,8 @@ export function normalize(input) {
     s = s.replace(/ /g, "").replace(/^(PARTE|LIVRO)(?=[A-Z])/, "$1 ");
   }
   return s
-    .replace(/^Art\s*\.\s*/i, "Art. ")
+    .replace(/^Art\s*\.\s*(?:\.\s*)?/i, "Art. ")
+    .replace(/^Art\. (\d+) (\d+)\./, "Art. $1$2.")
     .replace(/(Art\.\s*\d[\d.]*|§\s*\d+)\s*o(?=[\s.\-–—,;:]|$)/g, "$1º")
     .replace(/(Art\.\s*\d[\d.]*|§\s*\d+)\s+º/g, "$1º")
     .replace(/§\s*(\d)/g, "§ $1")
@@ -122,18 +123,30 @@ const MINOR = 7;
 const SPECIAL_HEADING =
   /^(ATO DAS DISPOSI[ÇC][ÕO]ES CONSTITUCIONAIS TRANSIT[ÓO]RIAS|PRE[ÂA]MBULO|DISPOSI[ÇC][ÕO]ES (?:FINAIS|TRANSIT[ÓO]RIAS|GERAIS|PRELIMINARES)(?: E (?:FINAIS|TRANSIT[ÓO]RIAS))?|DISPOSI[ÇC][ÃA]O (?:FINAL|PRELIMINAR|TRANSIT[ÓO]RIA))\.?$/i;
 const ADCT = /^ATO DAS DISPOSI[ÇC][ÕO]ES CONSTITUCIONAIS TRANSIT[ÓO]RIAS/;
-const ARTICLE = /^Art\.\s*(\d[\d.]*)\s*(?:º|°)?((?:\s?-[A-Z]{1,2}(?![A-Za-zÀ-ú]))*)/;
+// Groups: number, letter glued to the number ("10A"), hyphen suffixes ("-A", "-M-A").
+const ARTICLE = /^Art\.\s*(\d[\d.]*)((?:[A-Z]{1,2}(?=[\s.\-–º°]|$))?)\s*(?:º|°)?((?:\s?-[A-Z]{1,2}(?![A-Za-zÀ-ú]))*)/;
 const STRUCTURAL =
   /^(Art\.|§|Par[áa]grafo [úu]nico|[IVXLCDM]+\s*(?:[-–—.(]|$)|[a-z]\)|\d+\s*[-–—).]|\(VETADO\)|\(Revogad)/i;
 const START =
   /^(O PRESIDENTE DA REP|A PRESIDENTA DA REP|O VICE-PRESIDENTE|O PRESIDENTE DO SENADO|PRE[ÂA]MBULO|N[óo]s,? representantes|O CONGRESSO NACIONAL|Fa[çc]o saber|A MESA DA C[ÂA]MARA)/i;
-const END = /^((Bras[íi]lia|Rio de Janeiro),?\s+(em\s+)?\d|Este texto n[ãa]o substitui)/i;
+const END =
+  /^((Bras[íi]lia|Rio de Janeiro)\s*,?\s+(em\s+)?\d|(Congresso Nacional|C[âa]mara dos Deputados|Senado Federal)\s*,\s+em\s+\d|Este texto n[ãa]o substitui)/i;
+// Annexes (tables, maps) after the articles are not statute text to study.
+const ANNEX = /^ANEXOS?(\s+([IVXLC]+|[ÚU]NICO))?\s*$/;
+// Planalto markers left where expired provisional-measure text was struck out.
+const NOISE = /^\(?\s*(A\s+)?Vig[êe]ncia encerrada\s*\)?\.?$/i;
 // Leftovers of struck-out text: a lone numeral or letter, or a row of dots.
 const FRAGMENT = /^([IVXLCDM]+|[A-Za-z]|[.…\s]{3,})$/;
+// A quoted amendment block ends on a line that closes the quote, maybe followed by "(NR)".
+const QUOTE_END = /[”"]\s*(\([A-Z]{2}\))?\s*[.;,]?\s*$/;
+const artNumber = (line) => {
+  const m = line.match(ARTICLE);
+  return m ? parseInt(m[1].replace(/\./g, ""), 10) : null;
+};
 // Heading names that end in one of these words continue on the next line.
 const OPEN_END = / (DE|DA|DO|DAS|DOS|E|OU|EM|AO|AOS|À|ÀS|COM|PARA|POR|SOBRE|CONTRA|A|O|AS|OS|NA|NO|NAS|NOS)$/;
 
-const stripAccents = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+const stripAccents = (s) => s.normalize("NFD").replace(/\p{M}/gu, "");
 const isUpper = (s) => /[A-ZÀ-Ú]{2,}/.test(s) && s === s.toUpperCase();
 const isNoteOnly = (s) => {
   const { text, notes } = splitNotes(s);
@@ -145,15 +158,22 @@ export function articleKey(text, prefix = "") {
   const m = text.match(ARTICLE);
   if (!m) return null;
   const num = m[1].replace(/\./g, "").replace(/^0+(?=\d)/, "");
-  return `${prefix}art-${num}${m[2].replace(/\s/g, "")}`;
+  return `${prefix}art-${num}${m[2] ? "-" + m[2] : ""}${m[3].replace(/\s/g, "")}`;
 }
 
 /**
  * Build the structured law from extracted lines.
  * Items are either headings {h, l, n, id, a?} or articles {k, p:[{t, n?, r?}], rb?, r?}.
  */
-export function buildLaw(lines) {
+export function buildLaw(lines, { annex = false } = {}) {
+  // annex: the page is an approving decree (like the CLT's); the law itself starts after its signature.
+  if (annex) {
+    const end = lines.findIndex((l, i) => i > 0 && END.test(l));
+    if (end > 0) lines = lines.slice(end + 1);
+  }
   const items = [];
+  let inQuote = false;
+  let lastArtNum = 0;
   const seen = new Map();
   let started = false;
   let article = null;
@@ -190,11 +210,26 @@ export function buildLaw(lines) {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (FRAGMENT.test(line.replace(/[“”"]/g, "").trim())) continue;
+    const bare = line
+      .replace(/[“”"]/g, "")
+      .replace(/\((NR|AC)\)/g, "")
+      .trim();
+    // Inside a quoted amendment to another law: plain text of the current article, no structure,
+    // until the quote closes. A line with this law's own next article number also ends it.
+    if (inQuote) {
+      const ownNext = !/^[“"]/.test(line) && artNumber(line) === lastArtNum + 1;
+      if (!ownNext) {
+        if (!FRAGMENT.test(bare)) addPara(line);
+        if (QUOTE_END.test(line)) inQuote = false;
+        continue;
+      }
+      inQuote = false;
+    }
+    if (FRAGMENT.test(bare) || NOISE.test(bare)) continue;
     const next = lines[i + 1] || "";
-    // Quoted text is an amendment to another law: keep it as plain text of the article.
     if (started && article && /^[“"]/.test(line)) {
       addPara(line);
+      if (!QUOTE_END.test(line)) inQuote = true;
       continue;
     }
     if (!started) {
@@ -216,6 +251,7 @@ export function buildLaw(lines) {
       }
       break;
     }
+    if (ANNEX.test(line) && items.some((it) => it.k && !it.k.includes("intro"))) break;
 
     if (isNoteOnly(line)) {
       if (lastText) {
@@ -231,8 +267,21 @@ export function buildLaw(lines) {
       const word = stripAccents(hm[1]).toUpperCase();
       const label = `${hm[1]} ${hm[2]}`.replace(/\s+/g, " ").replace(/\s*[-–]\s*/, "-");
       let { text: name, notes } = splitNotes(hm[3] || "");
-      if (!name && next && !STRUCTURAL.test(next) && !HEADING.test(next) && !ARTICLE.test(next) && next.length < 260) {
-        const s = splitNotes(next);
+      // Note lines like "(Incluído pela Lei nº ...)" can sit between the label and the name.
+      while (!name && lines[i + 1] && isNoteOnly(lines[i + 1])) {
+        notes = notes.concat(splitNotes(lines[i + 1]).notes);
+        i++;
+      }
+      const nameLine = lines[i + 1] || "";
+      if (
+        !name &&
+        nameLine &&
+        !STRUCTURAL.test(nameLine) &&
+        !HEADING.test(nameLine) &&
+        !ARTICLE.test(nameLine) &&
+        nameLine.length < 260
+      ) {
+        const s = splitNotes(nameLine);
         name = s.text;
         notes = notes.concat(s.notes);
         i++;
@@ -259,6 +308,7 @@ export function buildLaw(lines) {
     }
     if (ARTICLE.test(line)) {
       article = { k: uniqueKey(articleKey(line, prefix)), p: [] };
+      lastArtNum = artNumber(line) ?? lastArtNum;
       if (pendingRubric) article.rb = pendingRubric;
       pendingRubric = null;
       items.push(article);
@@ -293,6 +343,16 @@ export function buildLaw(lines) {
     addPara(line);
   }
 
+  // A label-only "Art. 31." left from struck text, right before the real "Art. 31.": keep the real one.
+  for (let i = items.length - 2; i >= 0; i--) {
+    const a = items[i];
+    const b = items[i + 1];
+    if (a.k && b.k && b.k === `${a.k}~2` && a.p.length === 1 && /^Art\.\s*[\d.]+\S*\s*\.?$/.test(a.p[0].t)) {
+      b.k = a.k;
+      if (a.rb && !b.rb) b.rb = a.rb;
+      items.splice(i, 1);
+    }
+  }
   for (const it of items) {
     if (it.k && it.p.length === 1 && /^Art\.\s*[\d.]+\S*\s*\.?$/.test(it.p[0].t)) {
       it.r = 1; // revoked: only the label is left
@@ -301,6 +361,13 @@ export function buildLaw(lines) {
   return items.filter((it) => !it.k || it.p.length);
 }
 
+/** Planalto pages come as cp1252 (most), UTF-8 or UTF-16 with a byte-order mark. */
 export function decode(buffer) {
+  const b = buffer;
+  if (b[0] === 0xff && b[1] === 0xfe) return new TextDecoder("utf-16le").decode(b.subarray(2));
+  if (b[0] === 0xfe && b[1] === 0xff) return new TextDecoder("utf-16be").decode(b.subarray(2));
+  if (b[0] === 0xef && b[1] === 0xbb && b[2] === 0xbf) return new TextDecoder("utf-8").decode(b.subarray(3));
+  const head = new TextDecoder("latin1").decode(b.subarray(0, 4096));
+  if (/charset=["']?utf-8/i.test(head)) return new TextDecoder("utf-8").decode(b);
   return new TextDecoder("latin1").decode(buffer);
 }

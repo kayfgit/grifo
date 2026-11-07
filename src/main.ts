@@ -2,11 +2,14 @@ import "@fontsource-variable/literata/opsz.css";
 import "@fontsource-variable/literata/opsz-italic.css";
 import "@fontsource-variable/schibsted-grotesk/wght.css";
 import "./styles.css";
+import "./picker.css";
+import "./study.css";
 
-import { isHeading, LAWS, lawMeta, TABS, type Article, type Heading, type LawData } from "./laws";
+import { isHeading, LAWS, lawMeta, lawsInTab, TABS, type Article, type Heading, type LawData } from "./laws";
 import { applyRange, COLORS, decodeMarks, encodeMarks, snapEnd, snapStart, type Color, type Range } from "./marks";
 import { artLabel, articleKeyFromInput, esc, fold, kindOf, LABEL_RE, nice, type ParaKind } from "./text";
 import { createStore, parseBackup, type Backup } from "./storage";
+import { initStudy } from "./study";
 import { appVersion, onAppPause, onBackButton, preferencesKV, setSystemBars, shareBackup } from "./platform";
 
 /* ================= small helpers ================= */
@@ -111,14 +114,17 @@ function renderTabs(): void {
   if (sel && tabs.scrollWidth > tabs.clientWidth)
     tabs.scrollLeft = sel.offsetLeft - tabs.clientWidth / 2 + sel.offsetWidth / 2;
   const chips = $("#chips");
-  chips.hidden = cur.tab !== "Adm";
-  if (cur.tab === "Adm") {
-    chips.innerHTML = LAWS.filter((l) => l.tab === "Adm")
-      .map(
-        (l) =>
-          `<button class="chip" role="tab" data-law="${l.id}" aria-selected="${l.id === S.lawId}"><b>${l.short}</b><span>${l.name}</span></button>`,
-      )
-      .join("");
+  const inTab = lawsInTab(cur.tab);
+  chips.hidden = inTab.length < 2;
+  if (inTab.length >= 2) {
+    chips.innerHTML =
+      `<button class="chip all" data-picker="${esc(cur.tab)}"><b>Todas</b><span>${inTab.length} leis</span></button>` +
+      inTab
+        .map(
+          (l) =>
+            `<button class="chip" role="tab" data-law="${l.id}" aria-selected="${l.id === S.lawId}"><b>${esc(l.short)}</b><span>${esc(l.name)}</span></button>`,
+        )
+        .join("");
     const on = chips.querySelector<HTMLElement>("[aria-selected=true]");
     if (on) chips.scrollLeft = on.offsetLeft - chips.clientWidth / 2 + on.offsetWidth / 2;
   }
@@ -127,12 +133,72 @@ $("#tabs").addEventListener("click", (e) => {
   const b = (e.target as HTMLElement).closest<HTMLElement>("[data-tab]");
   if (!b) return;
   const t = b.dataset.tab!;
-  void openLaw(t === "Adm" ? local.get("lastAdm", "l8112") : LAWS.find((l) => l.tab === t)!.id);
+  const first = lawsInTab(t)[0].id;
+  const last = local.get<string>("last:" + t, first);
+  void openLaw(LAWS.some((l) => l.id === last && l.tab === t) ? last : first);
 });
 $("#chips").addEventListener("click", (e) => {
-  const b = (e.target as HTMLElement).closest<HTMLElement>("[data-law]");
+  const target = e.target as HTMLElement;
+  const pick = target.closest<HTMLElement>("[data-picker]");
+  if (pick) {
+    openPicker(pick.dataset.picker!);
+    return;
+  }
+  const b = target.closest<HTMLElement>("[data-law]");
   if (b) void openLaw(b.dataset.law!);
 });
+
+/* ================= law picker ================= */
+const picker = $("#picker");
+function openPicker(tab: string | null): void {
+  picker.hidden = false;
+  const q = $<HTMLInputElement>("#pickerQ");
+  q.value = "";
+  q.dataset.tab = tab ?? "";
+  renderPicker();
+  setTimeout(() => q.focus(), 50);
+}
+function closePicker(): boolean {
+  if (picker.hidden) return false;
+  picker.hidden = true;
+  return true;
+}
+function renderPicker(): void {
+  const q = $<HTMLInputElement>("#pickerQ");
+  const needle = fold(q.value.trim()).replace(/[.\s]/g, "");
+  const tab = q.dataset.tab || "";
+  const list = LAWS.filter((l) => {
+    if (!needle) return !tab || l.tab === tab;
+    return fold(`${l.short} ${l.name} ${l.tab}`).replace(/[.\s]/g, "").includes(needle);
+  });
+  const groups = new Map<string, typeof LAWS>();
+  for (const l of list) groups.set(l.tab, [...(groups.get(l.tab) ?? []), l]);
+  $("#pickerList").innerHTML = list.length
+    ? [...groups.entries()]
+        .map(
+          ([t, ls]) =>
+            `<p class="pk-group">${esc(t)}</p>` +
+            ls
+              .map(
+                (l) =>
+                  `<button class="pk-item${l.id === S.lawId ? " on" : ""}" data-law="${l.id}"><b>${esc(l.short)}</b><span>${esc(l.name)}</span></button>`,
+              )
+              .join(""),
+        )
+        .join("")
+    : `<p class="empty">Nenhuma lei encontrada para “${esc(q.value)}”.</p>`;
+}
+$("#pickerQ").addEventListener("input", renderPicker);
+$("#pickerList").addEventListener("click", (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLElement>("[data-law]");
+  if (!b) return;
+  closePicker();
+  void openLaw(b.dataset.law!);
+});
+picker.addEventListener("click", (e) => {
+  if (e.target === picker || (e.target as HTMLElement).closest("#pickerClose")) closePicker();
+});
+$("#crumbLaw").addEventListener("click", () => openPicker(null));
 
 /* ================= loading & rendering a law ================= */
 async function fetchLaw(id: string): Promise<LawData> {
@@ -152,7 +218,7 @@ async function openLaw(id: string, targetKey?: string): Promise<void> {
   S.law = null;
   S.loadedMarks = false;
   const meta = lawMeta(id);
-  if (meta.tab === "Adm") local.set("lastAdm", id);
+  local.set("last:" + meta.tab, id);
   local.set("lastLaw", id);
   renderTabs();
   $("#crumbLaw").textContent = `${meta.short} · ${meta.name}`;
@@ -990,7 +1056,23 @@ wide.addEventListener("change", () => {
 });
 
 /* ================= Android back button ================= */
+const study = initStudy({
+  kv: preferencesKV,
+  fetchLaw,
+  allMarks: async () => {
+    flushSave();
+    return (await store.exportAll()).laws;
+  },
+  openArticle: (lawId, key) => {
+    if (lawId === S.lawId && S.law) jumpTo(key);
+    else void openLaw(lawId, key);
+  },
+  toast,
+});
+
 onBackButton(() => {
+  if (study.back()) return true;
+  if (closePicker()) return true;
   if (closeConfirm()) return true;
   if (closeSettings()) return true;
   if (closePanel()) return true;

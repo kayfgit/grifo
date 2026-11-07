@@ -1,0 +1,335 @@
+/* "Estudos" screen: review cards and the cronograma. */
+.tool .badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--ruby);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-grid;
+  place-items: center;
+  font-variant-numeric: tabular-nums;
+}
+.study {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--desk);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+.study-open {
+  overflow: hidden;
+}
+.study-top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px max(12px, env(safe-area-inset-right, 0px)) 10px max(12px, env(safe-area-inset-left, 0px));
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+}
+.study-top h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 600;
+}
+.study-top button {
+  padding: 8px;
+  border-radius: 10px;
+  color: var(--ink-2);
+}
+.study-body {
+  display: grid;
+  gap: 16px;
+  max-width: 720px;
+  margin: 16px auto 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.st-card {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.st-card h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.st-card h3 {
+  margin: 6px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.st-card .eyebrow {
+  margin: 0;
+}
+.st-card p.muted {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 14px;
+}
+.st-card > .btn.primary {
+  justify-self: start;
+  flex: none;
+  padding: 0 18px;
+  min-height: 42px;
+}
+.st-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.st-colors {
+  display: flex;
+  gap: 2px;
+}
+.st-colors .dk {
+  width: 36px;
+  height: 36px;
+}
+.st-colors .dk[aria-pressed="false"]::after {
+  opacity: 0.25;
+}
+.stepper button {
+  font-family: var(--sans);
+}
+.st-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--rule);
+  overflow: hidden;
+}
+.st-progress i {
+  display: block;
+  height: 100%;
+  background: var(--ruby);
+  border-radius: inherit;
+}
+.st-segs,
+.st-next {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.st-segs li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+}
+.st-segs li span {
+  display: grid;
+  font-weight: 600;
+  font-size: 14.5px;
+  min-width: 0;
+}
+.st-segs small {
+  font-weight: 400;
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.st-segs .btn {
+  flex: none;
+  min-height: 34px;
+}
+.st-next li {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.st-next b {
+  color: var(--ink);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.st-done {
+  margin: 0;
+  color: #2f7d4a;
+  font-weight: 600;
+}
+.st-warn {
+  margin: 0;
+  color: var(--ruby);
+  font-weight: 600;
+  line-height: 1.5;
+}
+.st-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.st-form input[type="date"],
+.st-form input:not([type]) {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+}
+.st-form fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.st-form legend {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+}
+.st-week {
+  display: flex;
+  gap: 6px;
+}
+.st-week button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  font-weight: 650;
+}
+.st-week button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.st-tab .pk-group {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 0;
+  margin-right: 0;
+}
+.linkish {
+  color: var(--ruby);
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0;
+  text-transform: none;
+  justify-self: start;
+  padding: 4px 0;
+}
+.st-law {
+  display: flex !important;
+  grid-template-columns: none;
+  align-items: baseline;
+  gap: 10px !important;
+  padding: 7px 4px;
+  font-weight: 400 !important;
+  color: var(--ink) !important;
+  font-size: 14px !important;
+}
+.st-law input {
+  transform: translateY(2px);
+  accent-color: var(--ruby);
+}
+.st-law b {
+  min-width: 7.5em;
+  font-variant-numeric: tabular-nums;
+}
+.st-law span {
+  color: var(--ink-2);
+}
+.st-review {
+  gap: 16px;
+}
+.st-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.st-meta span:first-child {
+  color: var(--ruby);
+}
+.st-context {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: calc(var(--text-size) * 0.88);
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+.st-text {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: calc(var(--text-size) * 1.05);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.st-blank {
+  color: transparent;
+  background: var(--rule);
+  border-radius: 4px;
+  border-bottom: 2px solid var(--ink-3);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  user-select: none;
+}
+.st-ans {
+  color: var(--hl-ink);
+  mix-blend-mode: var(--hl-blend);
+  border-radius: 3px;
+}
+.st-show {
+  min-height: 48px;
+}
+.st-grades {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.st-grades .btn {
+  display: grid;
+  gap: 2px;
+  min-height: 56px;
+  padding: 6px 4px;
+}
+.st-grades small {
+  font-weight: 500;
+  color: var(--ink-3);
+  font-size: 11.5px;
+}
+.st-grades .g0 b {
+  color: var(--ruby);
+}
+.st-grades .g3 b {
+  color: #2f7d4a;
+}

@@ -12,14 +12,21 @@
         <div class="brand"><span class="swipe">Grifo</span><small>lei seca</small></div>
         <nav class="tabs" id="tabs" role="tablist" aria-label="Leis"></nav>
       </div>
-      <div class="chips" id="chips" role="tablist" aria-label="Leis de direito administrativo" hidden></div>
+      <div class="chips" id="chips" role="tablist" aria-label="Leis desta aba" hidden></div>
       <div class="sub">
         <button class="tool" id="btnPanel" aria-label="Sumário e busca">
           <svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h13" /></svg><span class="lbl">Sumário</span>
         </button>
         <div class="crumb">
-          <span class="law" id="crumbLaw">Carregando…</span><span class="where" id="crumbWhere">&nbsp;</span>
+          <button class="law" id="crumbLaw" aria-label="Escolher outra lei">Carregando…</button
+          ><span class="where" id="crumbWhere">&nbsp;</span>
         </div>
+        <button class="tool" id="btnStudy" aria-label="Estudos: revisão e cronograma">
+          <svg class="i" viewBox="0 0 24 24">
+            <path d="m2 9 10-5 10 5-10 5z" />
+            <path d="M6 11v5c2 2 10 2 12 0v-5M22 9v6" /></svg
+          ><span class="lbl">Estudar</span><span class="badge" id="studyBadge" hidden>0</span>
+        </button>
         <button class="tool" id="btnSearch" aria-label="Buscar no texto">
           <svg class="i" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="6.5" />
@@ -149,6 +156,36 @@
         </div>
       </div>
     </div>
+    <div class="sheet-confirm" id="picker" hidden role="dialog" aria-modal="true" aria-label="Escolher lei">
+      <div class="picker-card">
+        <div class="picker-head">
+          <label class="field"
+            ><svg class="i" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="m16 16 4 4" /></svg
+            ><input
+              id="pickerQ"
+              type="search"
+              enterkeyhint="search"
+              placeholder="Buscar lei: 8.112, improbidade, ECA…"
+              autocomplete="off"
+          /></label>
+          <button class="close" id="pickerClose" aria-label="Fechar">
+            <svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+        <div class="picker-list" id="pickerList"></div>
+      </div>
+    </div>
+    <section class="study" id="study" hidden aria-label="Estudos">
+      <div class="study-top">
+        <button id="studyClose" aria-label="Voltar">
+          <svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" /></svg>
+        </button>
+        <h1>Estudos</h1>
+      </div>
+      <div class="study-body" id="studyBody"></div>
+    </section>
     <div class="toast" id="toast" hidden></div>
     <script type="module" src="./src/main.ts"></script>
   </body>

@@ -1,6 +1,6 @@
 {
   "name": "grifo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Lei seca com abas, sumário, busca, pincel para grifar e anotações por artigo.",
   "type": "module",
