@@ -59,6 +59,19 @@ artigos, último artigo esperado (`last` em `scripts/laws/laws.config.mjs`), art
 com a versão já publicada. Se falhar, a versão anterior continua no app e o relatório
 (`.cache/laws-report.md`) diz o motivo.
 
+No Windows, a tarefa agendada **"Grifo - publicar leis"** roda isso toda segunda às 9h
+(`scripts/laws/publish-weekly.ps1`). Se o computador estiver desligado, ela roda assim que der; se falhar,
+tenta de novo até 3 vezes, de hora em hora. O resultado vai para `.cache/laws-publish.log`, e se alguma lei
+não passar nas verificações abre uma issue em grifo-leis. Para criar a tarefa em outro computador:
+
+```powershell
+$a = New-ScheduledTaskAction -Execute (Get-Command pwsh).Source -WorkingDirectory "D:\projects\grifo" `
+  -Argument '-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "D:\projects\grifo\scripts\laws\publish-weekly.ps1"'
+$t = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 9am
+$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -RunOnlyIfNetworkAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Hours 1)
+Register-ScheduledTask -TaskName "Grifo - publicar leis" -Action $a -Trigger $t -Settings $s
+```
+
 Para atualizar também a cópia que vai dentro do app (antes de gerar um APK):
 
 ```bash

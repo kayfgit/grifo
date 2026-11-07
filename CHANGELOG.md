@@ -2,6 +2,14 @@
 
 Todas as mudanças do Grifo, por versão. Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [Unreleased]
+
+### Ferramentas
+
+- Publicação semanal das leis por tarefa agendada no Windows (`scripts/laws/publish-weekly.ps1`), com
+  novas tentativas em caso de falha, log em `.cache/laws-publish.log` e issue em grifo-leis quando alguma
+  lei não passa nas verificações.
+
 ## [0.3.0] - 2026-11-06
 
 ### Adicionado
