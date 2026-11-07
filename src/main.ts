@@ -5,7 +5,19 @@ import "./styles.css";
 import "./picker.css";
 import "./study.css";
 
-import { isHeading, LAWS, lawMeta, lawsInTab, TABS, type Article, type Heading, type LawData } from "./laws";
+import {
+  applyCatalog,
+  BUNDLED_CATALOG,
+  isHeading,
+  LAWS,
+  lawMeta,
+  lawsInTab,
+  TABS,
+  type Article,
+  type Heading,
+  type LawData,
+} from "./laws";
+import { createUpdater } from "./updates";
 import { applyRange, COLORS, decodeMarks, encodeMarks, snapEnd, snapStart, type Color, type Range } from "./marks";
 import { artLabel, articleKeyFromInput, esc, fold, kindOf, LABEL_RE, nice, type ParaKind } from "./text";
 import { createStore, parseBackup, type Backup } from "./storage";
@@ -57,6 +69,7 @@ interface Prefs {
   theme: Theme;
 }
 const store = createStore(preferencesKV);
+const updater = createUpdater(preferencesKV, BUNDLED_CATALOG);
 const S = {
   lawId: "" as string,
   law: null as LawData | null,
@@ -204,6 +217,12 @@ $("#crumbLaw").addEventListener("click", () => openPicker(null));
 async function fetchLaw(id: string): Promise<LawData> {
   const hit = S.cache.get(id);
   if (hit) return hit;
+  // A law downloaded by the update check replaces the copy bundled with the app.
+  const downloaded = await updater.read(id);
+  if (downloaded) {
+    S.cache.set(id, downloaded);
+    return downloaded;
+  }
   const res = await fetch(`data/${id}.json`);
   if (!res.ok) throw new Error(String(res.status));
   const data = (await res.json()) as LawData;
@@ -1089,11 +1108,60 @@ onBackButton(() => {
   return false;
 });
 
+/* ================= law updates ================= */
+let checking = false;
+async function renderLawsStatus(): Promise<void> {
+  const last = await updater.lastCheck();
+  $("#lawsStatus").textContent = last
+    ? `Última verificação: ${new Date(last).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}.`
+    : "As leis ainda não foram verificadas.";
+}
+async function checkLaws(manual: boolean): Promise<void> {
+  if (checking) return;
+  checking = true;
+  const btn = $<HTMLButtonElement>("#btnCheckLaws");
+  btn.disabled = true;
+  btn.textContent = "Verificando…";
+  try {
+    const r = await updater.check();
+    applyCatalog(r.catalog);
+    r.updated.forEach((u) => S.cache.delete(u.id));
+    renderTabs();
+    if (r.updated.some((u) => u.id === S.lawId)) {
+      saveAnchor();
+      flushSave();
+      void openLaw(S.lawId);
+    }
+    if (r.updated.length) {
+      const names = r.updated.map((u) => u.short);
+      toast(
+        `${names.length === 1 ? "Lei atualizada" : `${names.length} leis atualizadas`}: ${names.slice(0, 4).join(", ")}${names.length > 4 ? "…" : ""}`,
+      );
+    } else if (manual)
+      toast(r.failed.length ? "Algumas leis não baixaram. Tente de novo mais tarde." : "Suas leis estão em dia.");
+  } catch {
+    if (manual) toast("Não foi possível verificar agora. Confira a internet e tente de novo.");
+  } finally {
+    checking = false;
+    btn.disabled = false;
+    btn.textContent = "Verificar atualizações";
+    void renderLawsStatus();
+  }
+}
+$("#btnCheckLaws").addEventListener("click", () => void checkLaws(true));
+
 /* ================= boot ================= */
 applyPrefs();
 setMode("read");
 void appVersion().then((v) => {
   if (v) $("#appVersion").textContent = `Grifo ${v}`;
 });
-const r0 = routeFromHash();
-void openLaw(r0 ? r0.lawId : local.get("lastLaw", "cf"), r0?.k);
+void (async () => {
+  applyCatalog(await updater.init());
+  const r0 = routeFromHash();
+  await openLaw(r0 ? r0.lawId : local.get("lastLaw", "cf"), r0?.k);
+  void renderLawsStatus();
+  // Check once a day, in the background, when online.
+  const last = await updater.lastCheck();
+  if (navigator.onLine && (!last || Date.now() - Date.parse(last) > 20 * 3600_000)) void checkLaws(false);
+})();
