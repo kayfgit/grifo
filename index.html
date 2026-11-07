@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Grifo</title>
+  </head>
+  <body>
+    <header class="top">
+      <div class="top-row">
+        <div class="brand"><span class="swipe">Grifo</span><small>lei seca</small></div>
+        <nav class="tabs" id="tabs" role="tablist" aria-label="Leis"></nav>
+      </div>
+      <div class="chips" id="chips" role="tablist" aria-label="Leis de direito administrativo" hidden></div>
+      <div class="sub">
+        <button class="tool" id="btnPanel" aria-label="Sumário e busca">
+          <svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h13" /></svg><span class="lbl">Sumário</span>
+        </button>
+        <div class="crumb">
+          <span class="law" id="crumbLaw">Carregando…</span><span class="where" id="crumbWhere">&nbsp;</span>
+        </div>
+        <button class="tool" id="btnSearch" aria-label="Buscar no texto">
+          <svg class="i" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m16 16 4 4" /></svg
+          ><span class="lbl">Buscar</span>
+        </button>
+        <button class="tool" id="btnMarks" aria-label="Minhas marcações">
+          <svg class="i" viewBox="0 0 24 24"><path d="M7 3.5h10v17l-5-3.6-5 3.6z" /></svg
+          ><span class="lbl">Marcações</span>
+        </button>
+        <button class="tool" id="btnSettings" aria-label="Ajustes de leitura" aria-pressed="false">
+          <svg class="i" viewBox="0 0 24 24"><path d="M4 18 9 6l5 12M5.8 14h6.4M15 18l3-7 3 7M15.9 16h4.2" /></svg
+          ><span class="lbl">Leitura</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <div class="scrim" id="scrim" hidden></div>
+      <aside class="panel" id="panel" aria-label="Painel">
+        <div class="panel-tabs" role="tablist">
+          <button class="ptab" data-pt="toc" role="tab">Sumário</button>
+          <button class="ptab" data-pt="search" role="tab">Buscar</button>
+          <button class="ptab" data-pt="marks" role="tab">Marcações</button>
+          <button class="close" id="btnClose" aria-label="Fechar painel">
+            <svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+        <div class="panel-body" id="panelBody"></div>
+      </aside>
+      <main id="main">
+        <div class="sheet" id="reader"><p class="loading">Abrindo o texto…</p></div>
+      </main>
+    </div>
+
+    <div class="dock" id="dock" role="toolbar" aria-label="Ferramentas de grifo">
+      <button class="dk" data-mode="read" aria-pressed="true" aria-label="Ler e rolar">
+        <svg class="i" viewBox="0 0 24 24">
+          <path
+            d="M8 12V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5V4a1.5 1.5 0 0 1 3 0v6m0-4.5a1.5 1.5 0 0 1 3 0V12m0-3.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.2a6 6 0 0 1-4.6-2.2L4.3 15a1.6 1.6 0 0 1 2.4-2.1L8 14"
+          />
+        </svg>
+      </button>
+      <span class="dk-sep"></span>
+      <button class="dk sw sw-y" data-mode="paint" data-c="y" aria-pressed="false" aria-label="Pincel amarelo"></button>
+      <button class="dk sw sw-g" data-mode="paint" data-c="g" aria-pressed="false" aria-label="Pincel verde"></button>
+      <button class="dk sw sw-p" data-mode="paint" data-c="p" aria-pressed="false" aria-label="Pincel rosa"></button>
+      <button class="dk sw sw-b" data-mode="paint" data-c="b" aria-pressed="false" aria-label="Pincel azul"></button>
+      <button class="dk sw sw-o" data-mode="paint" data-c="o" aria-pressed="false" aria-label="Pincel laranja"></button>
+      <span class="dk-sep"></span>
+      <button class="dk" data-mode="erase" aria-pressed="false" aria-label="Borracha">
+        <svg class="i" viewBox="0 0 24 24">
+          <path d="m14.5 4.5 5 5L10 19H5.5L3 16.5z" />
+          <path d="m9 10 5 5M10 19h10" />
+        </svg>
+      </button>
+    </div>
+    <div class="dock-tip" id="dockTip" hidden></div>
+    <div class="selpop" id="selpop" hidden>
+      <button class="dk sw sw-y" data-c="y" aria-label="Grifar seleção em amarelo"></button>
+      <button class="dk sw sw-g" data-c="g" aria-label="Grifar seleção em verde"></button>
+      <button class="dk sw sw-p" data-c="p" aria-label="Grifar seleção em rosa"></button>
+      <button class="dk sw sw-b" data-c="b" aria-label="Grifar seleção em azul"></button>
+      <button class="dk sw sw-o" data-c="o" aria-label="Grifar seleção em laranja"></button>
+      <button class="dk" data-c="" aria-label="Apagar grifo da seleção">
+        <svg class="i" viewBox="0 0 24 24">
+          <path d="m14.5 4.5 5 5L10 19H5.5L3 16.5z" />
+          <path d="m9 10 5 5" />
+        </svg>
+      </button>
+    </div>
+    <div class="pop" id="settings" hidden>
+      <h3>Leitura</h3>
+      <div class="row">
+        <span>Tamanho do texto</span>
+        <div class="stepper">
+          <button id="fsDown" aria-label="Diminuir texto">A−</button><output id="fsOut">18</output
+          ><button id="fsUp" aria-label="Aumentar texto">A+</button>
+        </div>
+      </div>
+      <div class="row">
+        <span>Tema</span>
+        <div class="seg" id="theme" role="radiogroup" aria-label="Tema">
+          <button data-theme-opt="system" role="radio">Sistema</button
+          ><button data-theme-opt="light" role="radio">Claro</button
+          ><button data-theme-opt="dark" role="radio">Escuro</button>
+        </div>
+      </div>
+      <div class="row">
+        <span>Notas de redação<br /><small class="muted">“Redação dada pela Lei…”</small></span
+        ><button
+          class="switch"
+          id="swNotes"
+          role="switch"
+          aria-checked="false"
+          aria-label="Mostrar notas de redação"
+        ></button>
+      </div>
+      <div class="row">
+        <span>Artigos revogados</span
+        ><button
+          class="switch"
+          id="swRev"
+          role="switch"
+          aria-checked="true"
+          aria-label="Mostrar artigos revogados"
+        ></button>
+      </div>
+      <h3>Backup</h3>
+      <p class="muted small">
+        Grifos e anotações ficam salvos neste aparelho. Exporte um backup antes de trocar de celular.
+      </p>
+      <div class="btns">
+        <button class="btn" id="btnExport">Exportar backup</button
+        ><button class="btn" id="btnImport">Importar backup</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json,.json" hidden />
+      <p class="muted small" id="appVersion"></p>
+    </div>
+    <div class="sheet-confirm" id="confirm" hidden role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="confirm-card">
+        <h3 id="confirmTitle">Importar backup?</h3>
+        <p id="confirmText"></p>
+        <div class="btns">
+          <button class="btn" id="confirmNo">Cancelar</button
+          ><button class="btn primary" id="confirmYes">Importar</button>
+        </div>
+      </div>
+    </div>
+    <div class="toast" id="toast" hidden></div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
