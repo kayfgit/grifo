@@ -1,0 +1,25 @@
+node_modules/
+dist/
+release/
+.cache/
+coverage/
+*.log
+
+# Secrets: signing passwords live in .env, the keystore in .signing/
+.env
+.signing/
+*.jks
+*.keystore
+
+# Android build output
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/release/
+android/capacitor-cordova-android-plugins/build/
+
+# Old demo files copied in from the first session
+/tools/
+/demo/
+/.claude/launch.json
