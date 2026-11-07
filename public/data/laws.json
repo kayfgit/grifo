@@ -1,0 +1,123 @@
+[
+ {
+  "id": "cf",
+  "tab": "CF/88",
+  "short": "CF/88",
+  "title": "Constituição da República Federativa do Brasil de 1988",
+  "url": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+  "articles": 411
+ },
+ {
+  "id": "cc",
+  "tab": "CC",
+  "short": "CC",
+  "title": "Código Civil — Lei nº 10.406, de 10 de janeiro de 2002",
+  "url": "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm",
+  "articles": 2082
+ },
+ {
+  "id": "cpc",
+  "tab": "CPC",
+  "short": "CPC",
+  "title": "Código de Processo Civil — Lei nº 13.105, de 16 de março de 2015",
+  "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm",
+  "articles": 1073
+ },
+ {
+  "id": "cp",
+  "tab": "CP",
+  "short": "CP",
+  "title": "Código Penal — Decreto-Lei nº 2.848, de 7 de dezembro de 1940",
+  "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm",
+  "articles": 428
+ },
+ {
+  "id": "cpp",
+  "tab": "CPP",
+  "short": "CPP",
+  "title": "Código de Processo Penal — Decreto-Lei nº 3.689, de 3 de outubro de 1941",
+  "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm",
+  "articles": 846
+ },
+ {
+  "id": "l8112",
+  "tab": "Adm",
+  "short": "Lei 8.112/90",
+  "topic": "Servidores públicos federais",
+  "title": "Lei nº 8.112, de 11 de dezembro de 1990",
+  "url": "https://www.planalto.gov.br/ccivil_03/leis/l8112cons.htm",
+  "articles": 247
+ },
+ {
+  "id": "l8429",
+  "tab": "Adm",
+  "short": "Lei 8.429/92",
+  "topic": "Improbidade administrativa",
+  "title": "Lei nº 8.429, de 2 de junho de 1992",
+  "url": "https://www.planalto.gov.br/ccivil_03/leis/l8429.htm",
+  "articles": 31
+ },
+ {
+  "id": "l9784",
+  "tab": "Adm",
+  "short": "Lei 9.784/99",
+  "topic": "Processo administrativo federal",
+  "title": "Lei nº 9.784, de 29 de janeiro de 1999",
+  "url": "https://www.planalto.gov.br/ccivil_03/leis/l9784.htm",
+  "articles": 80
+ },
+ {
+  "id": "l14133",
+  "tab": "Adm",
+  "short": "Lei 14.133/21",
+  "topic": "Licitações e contratos",
+  "title": "Lei nº 14.133, de 1º de abril de 2021",
+  "url": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm",
+  "articles": 208
+ },
+ {
+  "id": "l8987",
+  "tab": "Adm",
+  "short": "Lei 8.987/95",
+  "topic": "Concessões e permissões",
+  "title": "Lei nº 8.987, de 13 de fevereiro de 1995",
+  "url": "https://www.planalto.gov.br/ccivil_03/leis/l8987cons.htm",
+  "articles": 52
+ },
+ {
+  "id": "l11079",
+  "tab": "Adm",
+  "short": "Lei 11.079/04",
+  "topic": "Parcerias público-privadas",
+  "title": "Lei nº 11.079, de 30 de dezembro de 2004",
+  "url": "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/l11079.htm",
+  "articles": 32
+ },
+ {
+  "id": "l12846",
+  "tab": "Adm",
+  "short": "Lei 12.846/13",
+  "topic": "Anticorrupção",
+  "title": "Lei nº 12.846, de 1º de agosto de 2013",
+  "url": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/l12846.htm",
+  "articles": 31
+ },
+ {
+  "id": "l12527",
+  "tab": "Adm",
+  "short": "Lei 12.527/11",
+  "topic": "Acesso à informação",
+  "title": "Lei nº 12.527, de 18 de novembro de 2011",
+  "url": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm",
+  "articles": 49
+ },
+ {
+  "id": "l13303",
+  "tab": "Adm",
+  "short": "Lei 13.303/16",
+  "topic": "Estatais",
+  "title": "Lei nº 13.303, de 30 de junho de 2016",
+  "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2016/lei/l13303.htm",
+  "articles": 98
+ }
+]
