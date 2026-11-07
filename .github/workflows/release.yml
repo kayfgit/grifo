@@ -1,0 +1,44 @@
+name: Release
+
+# Push a tag like v0.2.0 (matching package.json) to build a signed APK and publish a GitHub release
+# whose notes are that version's section of CHANGELOG.md.
+# Needs repository secrets: GRIFO_KEYSTORE_BASE64, GRIFO_KEYSTORE_PASSWORD, GRIFO_KEY_ALIAS, GRIFO_KEY_PASSWORD.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm test
+      - name: Restore signing key
+        run: |
+          mkdir -p .signing
+          echo "${{ secrets.GRIFO_KEYSTORE_BASE64 }}" | base64 -d > .signing/grifo-release.jks
+      - name: Build signed APK
+        env:
+          GRIFO_KEYSTORE: .signing/grifo-release.jks
+          GRIFO_KEYSTORE_PASSWORD: ${{ secrets.GRIFO_KEYSTORE_PASSWORD }}
+          GRIFO_KEY_ALIAS: ${{ secrets.GRIFO_KEY_ALIAS }}
+          GRIFO_KEY_PASSWORD: ${{ secrets.GRIFO_KEY_PASSWORD }}
+        run: npm run android:apk
+      - name: Extract release notes
+        run: node scripts/changelog-section.mjs "${GITHUB_REF_NAME#v}" > release-notes.md
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" release/Grifo-*.apk --title "Grifo ${GITHUB_REF_NAME#v}" --notes-file release-notes.md

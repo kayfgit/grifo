@@ -1,0 +1,8 @@
+dist
+android
+release
+.cache
+public/data
+package-lock.json
+tools
+demo
