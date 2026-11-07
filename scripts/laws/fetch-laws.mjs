@@ -27,4 +27,22 @@ async function download(law, attempt = 1) {
   }
 }
 
-await Promise.all(LAWS.map((law) => download(law)));
+// One page failing must not stop the others: the build reports it and the published version stays.
+// Six at a time, to be gentle with planalto.gov.br.
+const failed = [];
+const queue = [...LAWS];
+await Promise.all(
+  Array.from({ length: 6 }, async () => {
+    for (let law = queue.shift(); law; law = queue.shift()) {
+      await download(law).catch((err) => {
+        failed.push(law.id);
+        console.error(`FAILED ${err.message}`);
+      });
+    }
+  }),
+);
+if (failed.length === LAWS.length) {
+  console.error("No page could be downloaded.");
+  process.exit(1);
+}
+if (failed.length) console.error(`\nNot downloaded: ${failed.join(", ")}`);

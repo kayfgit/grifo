@@ -43,12 +43,29 @@ instalado: seria preciso desinstalar, e os grifos se perdem (a menos que haja ba
 
 ## Atualizar os textos das leis
 
+O app traz uma cópia das leis e, uma vez por dia, compara com o catálogo publicado em
+[kayfgit/grifo-leis](https://github.com/kayfgit/grifo-leis) (repositório público, só com os textos). As
+leis que mudaram são baixadas e usadas no lugar da cópia do app; leis novas aparecem no catálogo.
+
+Para publicar as leis atualizadas:
+
 ```bash
-npm run laws:update   # baixa do Planalto e regenera public/data/*.json
+npm run laws:publish   # baixa do Planalto, converte, confere e publica no grifo-leis
 ```
 
-Confira o resultado (o script imprime quantos artigos e títulos cada lei tem) antes de gerar um APK novo.
-As leis ficam em `scripts/laws/laws.config.mjs`.
+Rode de um computador no Brasil: o Planalto recusa acessos vindos de servidores na nuvem (como o GitHub
+Actions). Uma lei só é publicada se passar nas verificações (`scripts/laws/quality.mjs`): número de
+artigos, último artigo esperado (`last` em `scripts/laws/laws.config.mjs`), artigos repetidos e comparação
+com a versão já publicada. Se falhar, a versão anterior continua no app e o relatório
+(`.cache/laws-report.md`) diz o motivo.
+
+Para atualizar também a cópia que vai dentro do app (antes de gerar um APK):
+
+```bash
+npm run laws:update   # regenera public/data/*.json
+```
+
+Os grifos guardam as palavras grifadas, então continuam no lugar certo quando uma lei muda.
 
 ## Releases no GitHub
 

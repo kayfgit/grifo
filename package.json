@@ -1,6 +1,6 @@
 {
   "name": "grifo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Lei seca com abas, sumário, busca, pincel para grifar e anotações por artigo.",
   "type": "module",
@@ -17,7 +17,8 @@
     "laws:update": "npm run laws:fetch && npm run laws:build",
     "android:sync": "npm run build && cap sync android",
     "android:apk": "npm run android:sync && node scripts/build-apk.mjs",
-    "android:install": "node scripts/install-apk.mjs"
+    "android:install": "node scripts/install-apk.mjs",
+    "laws:publish": "node scripts/laws/publish-data.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",

@@ -23,3 +23,7 @@ android/capacitor-cordova-android-plugins/build/
 /tools/
 /demo/
 /.claude/launch.json
+
+# Local fake data source for testing law updates
+public/__fake/
+public/data/problems.json

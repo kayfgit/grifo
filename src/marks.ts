@@ -52,30 +52,71 @@ export interface ParaRef {
   t: string;
 }
 
+/** Up to this many characters of the highlighted text are stored, to find it again if the law changes. */
+const SNIPPET = 60;
+
+/** Each highlight is "articleKey|paragraph|start|end|color|text", text being the start of the highlighted words. */
 export function encodeMarks(marks: Map<number, Range[]>, paras: ParaRef[], notes: Record<string, string>): LawMarks {
   const hl: string[] = [];
   for (const [g, list] of marks) {
     const p = paras[g];
     if (!p) continue;
-    for (const [s, e, c] of list) hl.push(`${p.k}|${p.i}|${s}|${e}|${c}`);
+    for (const [s, e, c] of list)
+      hl.push(`${p.k}|${p.i}|${s}|${e}|${c}|${encodeURIComponent(p.t.slice(s, Math.min(e, s + SNIPPET)))}`);
   }
   return { v: 1, hl, notes: { ...notes } };
 }
 
-/** Rebuild highlights against the current text; entries for paragraphs that no longer exist are dropped. */
+/**
+ * Rebuild highlights against the current text. When a law was updated and the highlighted words are no
+ * longer at the stored position, look for them in the same article (the nearest paragraph wins).
+ * Highlights whose words are gone are dropped.
+ */
 export function decodeMarks(data: LawMarks, paras: ParaRef[]): Map<number, Range[]> {
   const index = new Map<string, number>();
-  paras.forEach((p, g) => index.set(`${p.k}|${p.i}`, g));
+  const byArticle = new Map<string, number[]>();
+  paras.forEach((p, g) => {
+    index.set(`${p.k}|${p.i}`, g);
+    byArticle.set(p.k, [...(byArticle.get(p.k) ?? []), g]);
+  });
   const out = new Map<number, Range[]>();
-  for (const s of data.hl ?? []) {
-    const [k, i, a, b, c] = s.split("|");
-    const g = index.get(`${k}|${i}`);
-    if (g == null || !isColor(c)) continue;
+  const add = (g: number, start: number, end: number, c: Color) => {
     const len = paras[g].t.length;
-    const start = Math.min(+a, len);
-    const end = Math.min(+b, len);
-    if (!(end > start)) continue;
-    out.set(g, applyRange(out.get(g) ?? [], start, end, c));
+    const s = Math.min(start, len);
+    const e = Math.min(end, len);
+    if (e > s) out.set(g, applyRange(out.get(g) ?? [], s, e, c));
+  };
+  for (const entry of data.hl ?? []) {
+    const [k, i, a, b, c, enc] = entry.split("|");
+    if (!isColor(c)) continue;
+    const start = +a;
+    const end = +b;
+    const g = index.get(`${k}|${i}`);
+    let snippet: string | null;
+    try {
+      snippet = enc ? decodeURIComponent(enc) : null;
+    } catch {
+      snippet = null;
+    }
+    // Old entries without text, or text still in place: use the stored position.
+    if (!snippet) {
+      if (g != null) add(g, start, end, c);
+      continue;
+    }
+    if (g != null && paras[g].t.slice(start, start + snippet.length) === snippet) {
+      add(g, start, end, c);
+      continue;
+    }
+    const candidates = (byArticle.get(k) ?? [])
+      .slice()
+      .sort((x, y) => Math.abs(paras[x].i - +i) - Math.abs(paras[y].i - +i));
+    for (const cg of candidates) {
+      const at = paras[cg].t.indexOf(snippet);
+      if (at >= 0) {
+        add(cg, at, at + (end - start), c);
+        break;
+      }
+    }
   }
   return out;
 }

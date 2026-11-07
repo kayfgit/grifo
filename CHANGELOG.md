@@ -2,6 +2,16 @@
 
 Todas as mudanças do Grifo, por versão. Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [0.3.0] - 2026-11-06
+
+### Adicionado
+
+- Atualização das leis sem precisar de um app novo: uma vez por dia o Grifo confere se alguma lei mudou e
+  baixa só as que mudaram. Também dá para conferir na hora em Leitura › Leis › Verificar atualizações.
+  Leis novas que entrarem no catálogo aparecem do mesmo jeito.
+- Os grifos acompanham o texto: quando uma lei muda (um inciso novo, uma redação nova), cada grifo é
+  procurado pelas palavras grifadas e continua no lugar certo. Grifos cujas palavras saíram da lei somem.
+
 ## [0.2.0] - 2026-11-06
 
 ### Adicionado
