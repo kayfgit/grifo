@@ -4,6 +4,10 @@ Todas as mudanças do Grifo, por versão. Formato baseado em [Keep a Changelog](
 
 ## [Unreleased]
 
+### Alterado
+
+- O Grifo agora é licenciado sob a GNU GPL v3 ou posterior (GPL-3.0-or-later), copyright Kayf.
+
 ### Ferramentas
 
 - Publicação semanal das leis por tarefa agendada no Windows (`scripts/laws/publish-weekly.ps1`), com

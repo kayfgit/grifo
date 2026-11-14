@@ -94,3 +94,11 @@ seção correspondente do `CHANGELOG.md`. Ele precisa destes secrets no reposit�
 - `src/platform.ts`: integração com o Android (Preferences, botão voltar, compartilhar)
 - `scripts/laws/`: download e conversão dos textos do Planalto
 - `android/`: projeto Android gerado pelo Capacitor
+
+## Licença
+
+Copyright (C) 2026 Kayf
+
+O Grifo é software livre: você pode redistribuí-lo e/ou modificá-lo sob os termos da
+GNU General Public License, publicada pela Free Software Foundation, na versão 3 da
+licença ou (a seu critério) qualquer versão posterior. Veja [LICENSE](LICENSE).

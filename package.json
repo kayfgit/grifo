@@ -2,6 +2,7 @@
   "name": "grifo",
   "version": "0.3.0",
   "private": true,
+  "license": "GPL-3.0-or-later",
   "description": "Lei seca com abas, sumário, busca, pincel para grifar e anotações por artigo.",
   "type": "module",
   "scripts": {
